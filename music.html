@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Playlist</title>
+</head>
+<body>
+    <h1>My Playlist</h1>
+    <div id="playList">Loading Songs...</div>
+
+    <h2>Add a new song</h2>
+    <form id="song-form">
+        <input 
+            type="text"
+            id="Title"
+            placeholder="enter song"
+            required
+            style="width: 100%; padding: 8px; margin: 5px 0;"
+            />
+        <input 
+            type="text"
+            id="Artist"
+            placeholder="enter artist"
+            required
+            style="width: 100%; padding: 8px; margin: 5px 0;"
+            />
+        <input 
+            type="text"
+            id="Director"
+            placeholder="enter director"
+            required
+            style="width: 100%; padding: 8px; margin: 5px 0;"
+            />
+        <label style="display: block; margin: 10px 0;">
+            <input type="checkbox" id="is_heard"/> I've heard this song
+        </label>
+        <button type="submit">Add Song</button>
+    </form>
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabase = window.supabase.createClient(
+            "https://wymclvbqghsptvdmruql.supabase.co",
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5bWNsdmJxZ2hzcHR2ZG1ydXFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1MjYyNDUsImV4cCI6MjA3OTEwMjI0NX0.aOQqLibPiunpK6hXgNkmchtu9MT26q0CFRkCSug7W2g"
+
+        );
+        async function loadsongs() {
+            const { data, error} = await supabase.from("Playlist").select("*");
+
+            if (error) {
+                console.error ("error", error);
+            }
+
+            const playList = document.getElementById("playList");
+            playList.innerHTML = "";
+            
+            data.forEach((song) => {
+                const songDiv = document.createElement("div");
+                songDiv.className = `song ${song.is_heard ? "heard" : "unheard"}`;
+                songDiv.innerHTML = `<h3>${song.Title}</h3>
+                                    <p><strong>Artist:</strong> ${song.Artist} </p>
+                                    <p><strong>Director:</strong> ${song.Director} </p>
+                                    <p><strong>Status:</strong> ${
+                                        song.is_heard ? "Heard" : "Not heard yet"    
+                                    }</p>`;
+
+                playList.appendChild(songDiv);
+            });
+        }
+
+        document
+        .getElementById("song-form")
+        .addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const Title = document.getElementById("Title").value;
+            const Artist = document.getElementById("Artist").value;
+            const Director = document.getElementById("Director").value;
+            const is_heard = document.getElementById("is_heard").value;
+
+            const {data , error} = await supabase
+            .from("Playlist")
+            .insert([{ Title, Artist, Director, is_heard}]);
+
+            if (error) {
+                alert("error adding song!" + error.message);
+                return;
+            }
+            document.getElementById("song-form").reset();
+            loadsongs();
+            alert("song added");
+        });
+        loadsongs();
+    </script>
+</body>
+</html>
